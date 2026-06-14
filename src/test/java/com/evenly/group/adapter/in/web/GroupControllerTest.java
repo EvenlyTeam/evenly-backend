@@ -14,6 +14,7 @@ import com.evenly.group.application.dto.GroupDetail;
 import com.evenly.group.application.port.in.CreateGroupUseCase;
 import com.evenly.group.application.port.in.GetGroupUseCase;
 import com.evenly.group.application.port.in.ListGroupsUseCase;
+import com.evenly.group.application.port.in.SettleGroupUseCase;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,9 @@ class GroupControllerTest {
 
     @MockitoBean
     ListGroupsUseCase listGroupsUseCase;
+
+    @MockitoBean
+    SettleGroupUseCase settleGroupUseCase;
 
     @MockitoBean
     GroupAccessGuard groupAccessGuard;
@@ -102,5 +106,15 @@ class GroupControllerTest {
         given(listGroupsUseCase.listGroups(any())).willReturn(List.of());
 
         mvc.perform(get("/groups")).andExpect(status().isOk());
+    }
+
+    @Test
+    void 정산_완료_표시는_204() throws Exception {
+        mvc.perform(post("/groups/" + UUID.randomUUID() + "/settle")).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void 정산_완료_해제는_204() throws Exception {
+        mvc.perform(post("/groups/" + UUID.randomUUID() + "/reopen")).andExpect(status().isNoContent());
     }
 }

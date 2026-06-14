@@ -40,6 +40,7 @@ class ListGroupsService implements ListGroupsUseCase {
                             group.getName().value(),
                             participants.size(),
                             myBalance(group.getId(), ownerId, participants),
+                            group.isSettled(),
                             group.getCreatedAt());
                 })
                 .toList();

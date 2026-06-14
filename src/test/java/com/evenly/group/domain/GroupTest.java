@@ -44,4 +44,19 @@ class GroupTest {
 
         assertThatThrownBy(() -> group.withShareToken(" ")).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void markSettled_와_reopen_은_정산완료_상태를_토글한다() {
+        Group group = Group.create("강릉", UUID.randomUUID());
+        assertThat(group.isSettled()).isFalse();
+
+        Group settled = group.markSettled();
+        assertThat(settled.isSettled()).isTrue();
+        assertThat(settled.getSettledAt()).isNotNull();
+        assertThat(settled.getId()).isEqualTo(group.getId());
+
+        Group reopened = settled.reopen();
+        assertThat(reopened.isSettled()).isFalse();
+        assertThat(reopened.getSettledAt()).isNull();
+    }
 }

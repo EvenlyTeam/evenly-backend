@@ -7,6 +7,7 @@ import com.evenly.group.application.dto.GroupSummary;
 import com.evenly.group.application.port.in.CreateGroupUseCase;
 import com.evenly.group.application.port.in.GetGroupUseCase;
 import com.evenly.group.application.port.in.ListGroupsUseCase;
+import com.evenly.group.application.port.in.SettleGroupUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,16 +35,19 @@ class GroupController {
     private final CreateGroupUseCase createGroupUseCase;
     private final GetGroupUseCase getGroupUseCase;
     private final ListGroupsUseCase listGroupsUseCase;
+    private final SettleGroupUseCase settleGroupUseCase;
     private final GroupAccessGuard groupAccessGuard;
 
     GroupController(
             CreateGroupUseCase createGroupUseCase,
             GetGroupUseCase getGroupUseCase,
             ListGroupsUseCase listGroupsUseCase,
+            SettleGroupUseCase settleGroupUseCase,
             GroupAccessGuard groupAccessGuard) {
         this.createGroupUseCase = createGroupUseCase;
         this.getGroupUseCase = getGroupUseCase;
         this.listGroupsUseCase = listGroupsUseCase;
+        this.settleGroupUseCase = settleGroupUseCase;
         this.groupAccessGuard = groupAccessGuard;
     }
 
@@ -76,5 +80,35 @@ class GroupController {
             @Parameter(description = "모임 ID") @PathVariable UUID id) {
         groupAccessGuard.requireOwner(id, requesterId);
         return getGroupUseCase.getGroup(id);
+    }
+
+    @Operation(summary = "정산 완료 표시", description = "실제 송금을 마쳤음을 표시한다(소유자).")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "처리 성공"),
+        @ApiResponse(responseCode = "403", description = "소유자가 아님"),
+        @ApiResponse(responseCode = "404", description = "모임을 찾을 수 없음")
+    })
+    @PostMapping("/{id}/settle")
+    public ResponseEntity<Void> settle(
+            @Parameter(hidden = true) @AuthenticationPrincipal UUID requesterId,
+            @Parameter(description = "모임 ID") @PathVariable UUID id) {
+        groupAccessGuard.requireOwner(id, requesterId);
+        settleGroupUseCase.settle(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "정산 완료 해제", description = "정산 완료 상태를 되돌린다(소유자).")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "처리 성공"),
+        @ApiResponse(responseCode = "403", description = "소유자가 아님"),
+        @ApiResponse(responseCode = "404", description = "모임을 찾을 수 없음")
+    })
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<Void> reopen(
+            @Parameter(hidden = true) @AuthenticationPrincipal UUID requesterId,
+            @Parameter(description = "모임 ID") @PathVariable UUID id) {
+        groupAccessGuard.requireOwner(id, requesterId);
+        settleGroupUseCase.reopen(id);
+        return ResponseEntity.noContent().build();
     }
 }
