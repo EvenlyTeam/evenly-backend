@@ -55,13 +55,8 @@ class AddExpenseService implements AddExpenseUseCase {
             }
         }
 
-        Expense expense = new Expense(
-                UUID.randomUUID(),
-                command.groupId(),
-                command.payerId(),
-                command.description(),
-                command.amount(),
-                shares);
+        Expense expense =
+                Expense.create(command.groupId(), command.payerId(), command.description(), command.amount(), shares);
         return ExpenseInfo.from(saveExpensePort.save(expense));
     }
 }

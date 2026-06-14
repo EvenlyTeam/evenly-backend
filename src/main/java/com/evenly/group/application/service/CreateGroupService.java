@@ -9,7 +9,6 @@ import com.evenly.group.application.port.out.SaveParticipantPort;
 import com.evenly.group.domain.Group;
 import com.evenly.group.domain.Participant;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +32,10 @@ class CreateGroupService implements CreateGroupUseCase {
         }
 
         // createdAt 은 영속 시점에 JPA Auditing 이 채운 뒤 save() 결과에 반영된다.
-        Group group = new Group(UUID.randomUUID(), command.name(), command.ownerId(), null, null);
-        Group savedGroup = saveGroupPort.save(group);
+        Group savedGroup = saveGroupPort.save(Group.create(command.name(), command.ownerId()));
 
         List<Participant> participants = names.stream()
-                .map(name -> new Participant(UUID.randomUUID(), savedGroup.getId(), null, name))
+                .map(name -> Participant.create(savedGroup.getId(), name))
                 .toList();
         List<Participant> savedParticipants =
                 participants.isEmpty() ? List.of() : saveParticipantPort.saveAll(participants);

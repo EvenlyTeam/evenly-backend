@@ -25,7 +25,7 @@ class DeleteExpenseService implements DeleteExpenseUseCase {
     public void deleteExpense(UUID groupId, UUID expenseId) {
         Expense expense =
                 loadExpensePort.findById(expenseId).orElseThrow(() -> new NotFoundException("Expense", expenseId));
-        if (!expense.getGroupId().equals(groupId)) {
+        if (!expense.belongsTo(groupId)) {
             throw new NotFoundException("Expense", expenseId);
         }
         saveExpensePort.deleteById(expenseId);

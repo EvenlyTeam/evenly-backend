@@ -49,4 +49,21 @@ class ExpenseTest {
         assertThatThrownBy(() -> new Expense(UUID.randomUUID(), groupId, null, "x", 100, List.of(payer)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void create_는_id를_발급한다() {
+        Expense expense = Expense.create(groupId, payer, "저녁", 120000, List.of(payer));
+
+        assertThat(expense.getId()).isNotNull();
+        assertThat(expense.getGroupId()).isEqualTo(groupId);
+        assertThat(expense.getDescription()).isEqualTo("저녁");
+    }
+
+    @Test
+    void belongsTo_는_같은_모임이면_참() {
+        Expense expense = Expense.create(groupId, payer, "저녁", 100, List.of(payer));
+
+        assertThat(expense.belongsTo(groupId)).isTrue();
+        assertThat(expense.belongsTo(UUID.randomUUID())).isFalse();
+    }
 }

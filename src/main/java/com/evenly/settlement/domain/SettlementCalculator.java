@@ -33,16 +33,8 @@ public final class SettlementCalculator {
         long total = 0;
         for (ExpenseLine line : lines) {
             total += line.amount();
-            net.merge(line.payerId(), line.amount(), Long::sum);
-
-            List<UUID> shares = line.shareParticipantIds();
-            int k = shares.size();
-            long base = line.amount() / k;
-            long remainder = line.amount() % k; // 앞 remainder 명이 1원씩 더 부담
-            for (int i = 0; i < k; i++) {
-                long owed = base + (i < remainder ? 1 : 0);
-                net.merge(shares.get(i), -owed, Long::sum);
-            }
+            net.merge(line.payerId(), line.amount(), Long::sum); // 결제자는 낸 만큼 +
+            line.owedAmounts().forEach((participantId, owed) -> net.merge(participantId, -owed, Long::sum));
         }
 
         List<Balance> balances = net.entrySet().stream()

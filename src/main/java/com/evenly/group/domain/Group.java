@@ -25,6 +25,11 @@ public class Group {
         this.createdAt = createdAt;
     }
 
+    /** 새 모임 생성. id 는 도메인이 발급하고, createdAt 은 영속 시점에 채워진다. */
+    public static Group create(String name, UUID ownerId) {
+        return new Group(UUID.randomUUID(), name, ownerId, null, null);
+    }
+
     public UUID getId() {
         return id;
     }

@@ -26,7 +26,7 @@ class RemoveParticipantService implements RemoveParticipantUseCase {
         Participant participant = loadParticipantPort
                 .findById(participantId)
                 .orElseThrow(() -> new NotFoundException("Participant", participantId));
-        if (!participant.getGroupId().equals(groupId)) {
+        if (!participant.belongsTo(groupId)) {
             throw new NotFoundException("Participant", participantId);
         }
         saveParticipantPort.deleteById(participantId);

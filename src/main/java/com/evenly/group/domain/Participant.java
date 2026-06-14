@@ -22,6 +22,15 @@ public class Participant {
         this.name = new ParticipantName(name);
     }
 
+    /** 이름만으로 모임에 참여자 추가 (가입 회원이 아니어도 됨). */
+    public static Participant create(UUID groupId, String name) {
+        return new Participant(UUID.randomUUID(), groupId, null, name);
+    }
+
+    public boolean belongsTo(UUID groupId) {
+        return this.groupId.equals(groupId);
+    }
+
     public UUID getId() {
         return id;
     }

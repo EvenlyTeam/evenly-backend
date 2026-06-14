@@ -45,6 +45,16 @@ public class Expense {
         this.shareParticipantIds = List.copyOf(shareParticipantIds);
     }
 
+    /** 새 지출 생성. id 는 도메인이 발급한다. */
+    public static Expense create(
+            UUID groupId, UUID payerId, String description, long amount, List<UUID> shareParticipantIds) {
+        return new Expense(UUID.randomUUID(), groupId, payerId, description, amount, shareParticipantIds);
+    }
+
+    public boolean belongsTo(UUID groupId) {
+        return this.groupId.equals(groupId);
+    }
+
     public UUID getId() {
         return id;
     }
