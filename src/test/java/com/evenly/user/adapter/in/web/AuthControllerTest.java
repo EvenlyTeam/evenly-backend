@@ -1,10 +1,9 @@
 package com.evenly.user.adapter.in.web;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,7 +44,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void 회원가입_201_바디_토큰_및_refresh_쿠키() throws Exception {
+    void 회원가입_201_바디_및_access_refresh_쿠키() throws Exception {
         given(signupUseCase.signup(any())).willReturn(tokens());
 
         mvc.perform(
@@ -56,9 +54,10 @@ class AuthControllerTest {
                                         "{\"email\":\"junho@example.com\",\"displayName\":\"준호\",\"password\":\"password123\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").value("access-tok"))
-                .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=refresh-tok")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")));
+                .andExpect(cookie().value("accessToken", "access-tok"))
+                .andExpect(cookie().httpOnly("accessToken", true))
+                .andExpect(cookie().value("refreshToken", "refresh-tok"))
+                .andExpect(cookie().httpOnly("refreshToken", true));
     }
 
     @Test
@@ -93,7 +92,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void 로그인_200_및_refresh_쿠키() throws Exception {
+    void 로그인_200_바디_및_access_refresh_쿠키() throws Exception {
         given(loginUseCase.login(any())).willReturn(tokens());
 
         mvc.perform(post("/auth/login")
@@ -101,7 +100,8 @@ class AuthControllerTest {
                         .content("{\"email\":\"junho@example.com\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("access-tok"))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=refresh-tok")));
+                .andExpect(cookie().value("accessToken", "access-tok"))
+                .andExpect(cookie().value("refreshToken", "refresh-tok"));
     }
 
     @Test
@@ -122,7 +122,8 @@ class AuthControllerTest {
         mvc.perform(post("/auth/refresh").cookie(new Cookie("refreshToken", "old-refresh")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("access-tok"))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=refresh-tok")));
+                .andExpect(cookie().value("accessToken", "access-tok"))
+                .andExpect(cookie().value("refreshToken", "refresh-tok"));
     }
 
     @Test
@@ -138,7 +139,7 @@ class AuthControllerTest {
     void 로그아웃_204_및_쿠키_만료() throws Exception {
         mvc.perform(post("/auth/logout"))
                 .andExpect(status().isNoContent())
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")));
+                .andExpect(cookie().maxAge("accessToken", 0))
+                .andExpect(cookie().maxAge("refreshToken", 0));
     }
 }
