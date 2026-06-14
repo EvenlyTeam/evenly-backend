@@ -1,7 +1,7 @@
 @Library('hobom-shared-lib') _
 hobomPipeline(
   serviceName:    'dev-evenly-backend',
-  hostPort:       '9090',
+  hostPort:       '8091',
   containerPort:  '8080',
   memory:         '1536m',
   cpus:           '2',
