@@ -23,6 +23,11 @@ server:
 jwt:
   secret: ${JWT_SECRET:evenly-local-dev-secret-please-change-me-32+bytes!!}
   access-token-validity-ms: ${JWT_ACCESS_TOKEN_VALIDITY_MS:3600000}
+  refresh-token-validity-ms: ${JWT_REFRESH_TOKEN_VALIDITY_MS:1209600000} # 14d
+
+app:
+  cookie:
+    secure: ${COOKIE_SECURE:false} # 운영(HTTPS)에서는 true
 
 springdoc:
   swagger-ui:

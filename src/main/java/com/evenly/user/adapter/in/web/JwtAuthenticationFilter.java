@@ -29,7 +29,7 @@ class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith(PREFIX)) {
             try {
-                UUID userId = tokenProvider.parseUserId(header.substring(PREFIX.length()));
+                UUID userId = tokenProvider.parseAccessUserId(header.substring(PREFIX.length()));
                 var authentication = new UsernamePasswordAuthenticationToken(userId, null, List.of());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception ignored) {

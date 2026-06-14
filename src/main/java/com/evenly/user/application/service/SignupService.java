@@ -1,7 +1,7 @@
 package com.evenly.user.application.service;
 
 import com.evenly.common.domain.ConflictException;
-import com.evenly.user.application.dto.AuthResult;
+import com.evenly.user.application.dto.AuthTokens;
 import com.evenly.user.application.dto.SignupCommand;
 import com.evenly.user.application.port.in.SignupUseCase;
 import com.evenly.user.application.port.out.LoadUserPort;
@@ -34,14 +34,17 @@ class SignupService implements SignupUseCase {
     }
 
     @Override
-    public AuthResult signup(SignupCommand command) {
+    public AuthTokens signup(SignupCommand command) {
         String email = new Email(command.email()).value();
         if (loadUserPort.existsByEmail(email)) {
             throw new ConflictException("이미 가입된 이메일입니다: " + email);
         }
         User saved = saveUserPort.save(
                 User.register(email, command.displayName(), passwordHasher.hash(command.rawPassword())));
-        String token = tokenProvider.issueToken(saved.getId());
-        return AuthResult.of(token, saved.getId(), saved.getEmail().value());
+        return new AuthTokens(
+                tokenProvider.issueAccessToken(saved.getId()),
+                tokenProvider.issueRefreshToken(saved.getId()),
+                saved.getId(),
+                saved.getEmail().value());
     }
 }

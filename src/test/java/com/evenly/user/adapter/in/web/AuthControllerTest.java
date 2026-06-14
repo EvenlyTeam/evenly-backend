@@ -1,21 +1,26 @@
 package com.evenly.user.adapter.in.web;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.evenly.common.domain.ConflictException;
 import com.evenly.common.domain.UnauthorizedException;
-import com.evenly.user.application.dto.AuthResult;
+import com.evenly.user.application.dto.AuthTokens;
 import com.evenly.user.application.port.in.LoginUseCase;
+import com.evenly.user.application.port.in.RefreshTokenUseCase;
 import com.evenly.user.application.port.in.SignupUseCase;
+import jakarta.servlet.http.Cookie;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,10 +38,16 @@ class AuthControllerTest {
     @MockitoBean
     LoginUseCase loginUseCase;
 
+    @MockitoBean
+    RefreshTokenUseCase refreshTokenUseCase;
+
+    private AuthTokens tokens() {
+        return new AuthTokens("access-tok", "refresh-tok", UUID.randomUUID(), "junho@example.com");
+    }
+
     @Test
-    void 회원가입_201_및_토큰_반환() throws Exception {
-        given(signupUseCase.signup(any()))
-                .willReturn(AuthResult.of("jwt-token", UUID.randomUUID(), "junho@example.com"));
+    void 회원가입_201_바디_토큰_및_refresh_쿠키() throws Exception {
+        given(signupUseCase.signup(any())).willReturn(tokens());
 
         mvc.perform(
                         post("/auth/signup")
@@ -44,8 +55,10 @@ class AuthControllerTest {
                                 .content(
                                         "{\"email\":\"junho@example.com\",\"displayName\":\"준호\",\"password\":\"password123\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.accessToken").value("jwt-token"))
-                .andExpect(jsonPath("$.tokenType").value("Bearer"));
+                .andExpect(jsonPath("$.accessToken").value("access-tok"))
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=refresh-tok")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")));
     }
 
     @Test
@@ -80,14 +93,15 @@ class AuthControllerTest {
     }
 
     @Test
-    void 로그인_200() throws Exception {
-        given(loginUseCase.login(any())).willReturn(AuthResult.of("jwt-token", UUID.randomUUID(), "junho@example.com"));
+    void 로그인_200_및_refresh_쿠키() throws Exception {
+        given(loginUseCase.login(any())).willReturn(tokens());
 
         mvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"junho@example.com\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value("jwt-token"));
+                .andExpect(jsonPath("$.accessToken").value("access-tok"))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=refresh-tok")));
     }
 
     @Test
@@ -99,5 +113,32 @@ class AuthControllerTest {
                         .content("{\"email\":\"junho@example.com\",\"password\":\"wrong\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void 토큰_재발급_200_및_새_쿠키() throws Exception {
+        given(refreshTokenUseCase.refresh(any())).willReturn(tokens());
+
+        mvc.perform(post("/auth/refresh").cookie(new Cookie("refreshToken", "old-refresh")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("access-tok"))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=refresh-tok")));
+    }
+
+    @Test
+    void refresh_토큰_없거나_위조면_401() throws Exception {
+        given(refreshTokenUseCase.refresh(any())).willThrow(new UnauthorizedException("유효하지 않은 refresh 토큰입니다"));
+
+        mvc.perform(post("/auth/refresh"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void 로그아웃_204_및_쿠키_만료() throws Exception {
+        mvc.perform(post("/auth/logout"))
+                .andExpect(status().isNoContent())
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("refreshToken=")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")));
     }
 }

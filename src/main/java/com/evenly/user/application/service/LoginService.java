@@ -1,7 +1,7 @@
 package com.evenly.user.application.service;
 
 import com.evenly.common.domain.UnauthorizedException;
-import com.evenly.user.application.dto.AuthResult;
+import com.evenly.user.application.dto.AuthTokens;
 import com.evenly.user.application.dto.LoginCommand;
 import com.evenly.user.application.port.in.LoginUseCase;
 import com.evenly.user.application.port.out.LoadUserPort;
@@ -29,13 +29,16 @@ class LoginService implements LoginUseCase {
     }
 
     @Override
-    public AuthResult login(LoginCommand command) {
+    public AuthTokens login(LoginCommand command) {
         String email = new Email(command.email()).value();
         User user = loadUserPort.findByEmail(email).orElseThrow(() -> new UnauthorizedException(INVALID));
         if (!passwordHasher.matches(command.rawPassword(), user.getPasswordHash())) {
             throw new UnauthorizedException(INVALID);
         }
-        String token = tokenProvider.issueToken(user.getId());
-        return AuthResult.of(token, user.getId(), user.getEmail().value());
+        return new AuthTokens(
+                tokenProvider.issueAccessToken(user.getId()),
+                tokenProvider.issueRefreshToken(user.getId()),
+                user.getId(),
+                user.getEmail().value());
     }
 }

@@ -4,8 +4,13 @@ import java.util.UUID;
 
 public interface TokenProvider {
 
-    String issueToken(UUID userId);
+    String issueAccessToken(UUID userId);
 
-    /** 유효한 토큰이면 사용자 ID 를 반환하고, 아니면 예외를 던진다. */
-    UUID parseUserId(String token);
+    String issueRefreshToken(UUID userId);
+
+    /** 유효한 access 토큰이면 사용자 ID 반환, 아니면(만료/위조/refresh 토큰) 예외. */
+    UUID parseAccessUserId(String token);
+
+    /** 유효한 refresh 토큰이면 사용자 ID 반환, 아니면(만료/위조/access 토큰) 예외. */
+    UUID parseRefreshUserId(String token);
 }

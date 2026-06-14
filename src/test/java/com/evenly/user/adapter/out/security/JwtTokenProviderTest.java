@@ -9,27 +9,43 @@ import org.junit.jupiter.api.Test;
 class JwtTokenProviderTest {
 
     private static final String SECRET = "evenly-test-secret-please-change-me-0123456789";
-    private final JwtTokenProvider provider = new JwtTokenProvider(SECRET, 3600000);
+    private final JwtTokenProvider provider = new JwtTokenProvider(SECRET, 3600000, 1209600000);
 
     @Test
-    void 토큰을_발급하고_다시_사용자ID로_파싱한다() {
+    void access_토큰_발급_파싱() {
         UUID userId = UUID.randomUUID();
-
-        String token = provider.issueToken(userId);
-
-        assertThat(provider.parseUserId(token)).isEqualTo(userId);
+        assertThat(provider.parseAccessUserId(provider.issueAccessToken(userId)))
+                .isEqualTo(userId);
     }
 
     @Test
-    void 변조되거나_잘못된_토큰은_파싱에_실패한다() {
-        assertThatThrownBy(() -> provider.parseUserId("not.a.jwt")).isInstanceOf(Exception.class);
+    void refresh_토큰_발급_파싱() {
+        UUID userId = UUID.randomUUID();
+        assertThat(provider.parseRefreshUserId(provider.issueRefreshToken(userId)))
+                .isEqualTo(userId);
     }
 
     @Test
-    void 다른_시크릿으로_서명된_토큰은_거부한다() {
-        String token = new JwtTokenProvider("another-secret-please-change-me-0123456789", 3600000)
-                .issueToken(UUID.randomUUID());
+    void access_토큰을_refresh로_파싱하면_실패() {
+        String access = provider.issueAccessToken(UUID.randomUUID());
+        assertThatThrownBy(() -> provider.parseRefreshUserId(access)).isInstanceOf(Exception.class);
+    }
 
-        assertThatThrownBy(() -> provider.parseUserId(token)).isInstanceOf(Exception.class);
+    @Test
+    void refresh_토큰을_access로_파싱하면_실패() {
+        String refresh = provider.issueRefreshToken(UUID.randomUUID());
+        assertThatThrownBy(() -> provider.parseAccessUserId(refresh)).isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void 잘못된_토큰은_실패() {
+        assertThatThrownBy(() -> provider.parseAccessUserId("not.a.jwt")).isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void 다른_시크릿으로_서명된_토큰은_거부() {
+        String token = new JwtTokenProvider("another-secret-please-change-me-0123456789", 3600000, 1209600000)
+                .issueAccessToken(UUID.randomUUID());
+        assertThatThrownBy(() -> provider.parseAccessUserId(token)).isInstanceOf(Exception.class);
     }
 }

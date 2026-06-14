@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.evenly.common.domain.UnauthorizedException;
-import com.evenly.user.application.dto.AuthResult;
+import com.evenly.user.application.dto.AuthTokens;
 import com.evenly.user.application.dto.LoginCommand;
 import com.evenly.user.application.port.out.LoadUserPort;
 import com.evenly.user.application.port.out.PasswordHasher;
@@ -40,11 +40,13 @@ class LoginServiceTest {
         User user = new User(UUID.randomUUID(), "junho@example.com", "준호", "hashed", null);
         when(loadUserPort.findByEmail("junho@example.com")).thenReturn(Optional.of(user));
         when(passwordHasher.matches("password123", "hashed")).thenReturn(true);
-        when(tokenProvider.issueToken(user.getId())).thenReturn("jwt-token");
+        when(tokenProvider.issueAccessToken(user.getId())).thenReturn("access-tok");
+        when(tokenProvider.issueRefreshToken(user.getId())).thenReturn("refresh-tok");
 
-        AuthResult result = service.login(new LoginCommand("junho@example.com", "password123"));
+        AuthTokens result = service.login(new LoginCommand("junho@example.com", "password123"));
 
-        assertThat(result.accessToken()).isEqualTo("jwt-token");
+        assertThat(result.accessToken()).isEqualTo("access-tok");
+        assertThat(result.refreshToken()).isEqualTo("refresh-tok");
     }
 
     @Test

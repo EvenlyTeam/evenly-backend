@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.evenly.common.domain.ConflictException;
-import com.evenly.user.application.dto.AuthResult;
+import com.evenly.user.application.dto.AuthTokens;
 import com.evenly.user.application.dto.SignupCommand;
 import com.evenly.user.application.port.out.LoadUserPort;
 import com.evenly.user.application.port.out.PasswordHasher;
@@ -44,11 +44,13 @@ class SignupServiceTest {
         when(loadUserPort.existsByEmail("junho@example.com")).thenReturn(false);
         when(passwordHasher.hash("password123")).thenReturn("hashed");
         when(saveUserPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(tokenProvider.issueToken(any())).thenReturn("jwt-token");
+        when(tokenProvider.issueAccessToken(any())).thenReturn("access-tok");
+        when(tokenProvider.issueRefreshToken(any())).thenReturn("refresh-tok");
 
-        AuthResult result = service.signup(new SignupCommand("Junho@Example.com", "준호", "password123"));
+        AuthTokens result = service.signup(new SignupCommand("Junho@Example.com", "준호", "password123"));
 
-        assertThat(result.accessToken()).isEqualTo("jwt-token");
+        assertThat(result.accessToken()).isEqualTo("access-tok");
+        assertThat(result.refreshToken()).isEqualTo("refresh-tok");
         assertThat(result.email()).isEqualTo("junho@example.com");
         verify(saveUserPort).save(any());
     }
@@ -60,6 +62,6 @@ class SignupServiceTest {
         assertThatThrownBy(() -> service.signup(new SignupCommand("junho@example.com", "준호", "password123")))
                 .isInstanceOf(ConflictException.class);
         verify(saveUserPort, never()).save(any());
-        verify(tokenProvider, never()).issueToken(any(UUID.class));
+        verify(tokenProvider, never()).issueAccessToken(any(UUID.class));
     }
 }
