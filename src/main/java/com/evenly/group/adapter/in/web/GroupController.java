@@ -1,9 +1,11 @@
 package com.evenly.group.adapter.in.web;
 
 import com.evenly.group.application.dto.CreateGroupCommand;
-import com.evenly.group.application.dto.GroupInfo;
+import com.evenly.group.application.dto.GroupDetail;
+import com.evenly.group.application.dto.GroupSummary;
 import com.evenly.group.application.port.in.CreateGroupUseCase;
 import com.evenly.group.application.port.in.GetGroupUseCase;
+import com.evenly.group.application.port.in.ListGroupsUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,30 +32,44 @@ class GroupController {
 
     private final CreateGroupUseCase createGroupUseCase;
     private final GetGroupUseCase getGroupUseCase;
+    private final ListGroupsUseCase listGroupsUseCase;
 
-    GroupController(CreateGroupUseCase createGroupUseCase, GetGroupUseCase getGroupUseCase) {
+    GroupController(
+            CreateGroupUseCase createGroupUseCase,
+            GetGroupUseCase getGroupUseCase,
+            ListGroupsUseCase listGroupsUseCase) {
         this.createGroupUseCase = createGroupUseCase;
         this.getGroupUseCase = getGroupUseCase;
+        this.listGroupsUseCase = listGroupsUseCase;
     }
 
-    @Operation(summary = "모임 생성")
+    @Operation(summary = "모임 생성", description = "이름과 참여자(선택)로 모임을 생성한다.")
     @ApiResponse(responseCode = "201", description = "생성 성공")
     @PostMapping
-    public ResponseEntity<GroupInfo> createGroup(
+    public ResponseEntity<GroupDetail> createGroup(
             // TODO(auth): 인증 어댑터 구현 후 인증 principal 에서 ownerId 주입으로 교체
             @Parameter(description = "소유자 사용자 ID (임시: 인증 전까지 헤더로 전달)") @RequestHeader("X-User-Id") UUID ownerId,
             @Valid @RequestBody CreateGroupRequest request) {
-        GroupInfo created = createGroupUseCase.createGroup(new CreateGroupCommand(request.name(), ownerId));
+        GroupDetail created =
+                createGroupUseCase.createGroup(new CreateGroupCommand(request.name(), ownerId, request.participants()));
         return ResponseEntity.created(URI.create("/groups/" + created.id())).body(created);
     }
 
-    @Operation(summary = "모임 단건 조회")
+    @Operation(summary = "내 모임 목록 조회")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping
+    public List<GroupSummary> listGroups(
+            @Parameter(description = "소유자 사용자 ID (임시: 인증 전까지 헤더로 전달)") @RequestHeader("X-User-Id") UUID ownerId) {
+        return listGroupsUseCase.listGroups(ownerId);
+    }
+
+    @Operation(summary = "모임 단건 조회", description = "참여자 목록을 포함한 모임 상세를 반환한다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공"),
         @ApiResponse(responseCode = "404", description = "모임을 찾을 수 없음", content = @Content)
     })
     @GetMapping("/{id}")
-    public GroupInfo getGroup(@Parameter(description = "모임 ID") @PathVariable UUID id) {
+    public GroupDetail getGroup(@Parameter(description = "모임 ID") @PathVariable UUID id) {
         return getGroupUseCase.getGroup(id);
     }
 }

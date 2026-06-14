@@ -1,9 +1,9 @@
 package com.evenly.group.application.port.in;
 
 import com.evenly.group.application.dto.CreateGroupCommand;
-import com.evenly.group.application.dto.GroupInfo;
+import com.evenly.group.application.dto.GroupDetail;
 
 public interface CreateGroupUseCase {
 
-    GroupInfo createGroup(CreateGroupCommand command);
+    GroupDetail createGroup(CreateGroupCommand command);
 }
