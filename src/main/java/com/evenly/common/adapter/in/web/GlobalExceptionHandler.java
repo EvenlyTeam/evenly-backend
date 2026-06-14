@@ -5,9 +5,12 @@ import com.evenly.common.domain.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -50,6 +53,31 @@ public class GlobalExceptionHandler {
                 ex.getFieldErrors().stream()
                         .map(e -> e.getField() + ": " + e.getDefaultMessage())
                         .toList());
+        return problem;
+    }
+
+    // 필수 헤더/파라미터 누락 등 요청 바인딩 실패 → 400
+    @ExceptionHandler(ServletRequestBindingException.class)
+    public ProblemDetail handleRequestBinding(ServletRequestBindingException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setProperty("code", "BAD_REQUEST");
+        return problem;
+    }
+
+    // 경로변수/파라미터 타입 불일치(예: 잘못된 UUID) → 400
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, "Invalid value for parameter '" + ex.getName() + "'");
+        problem.setProperty("code", "BAD_REQUEST");
+        return problem;
+    }
+
+    // 요청 본문 누락/파싱 불가 → 400
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleNotReadable(HttpMessageNotReadableException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Malformed request body");
+        problem.setProperty("code", "BAD_REQUEST");
         return problem;
     }
 
