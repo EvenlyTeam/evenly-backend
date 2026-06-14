@@ -38,9 +38,11 @@ class AuthControllerTest {
         given(signupUseCase.signup(any()))
                 .willReturn(AuthResult.of("jwt-token", UUID.randomUUID(), "junho@example.com"));
 
-        mvc.perform(post("/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"junho@example.com\",\"password\":\"password123\"}"))
+        mvc.perform(
+                        post("/auth/signup")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"email\":\"junho@example.com\",\"displayName\":\"준호\",\"password\":\"password123\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.accessToken").value("jwt-token"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"));
@@ -50,7 +52,7 @@ class AuthControllerTest {
     void 이메일_형식_틀리면_400() throws Exception {
         mvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"not-email\",\"password\":\"password123\"}"))
+                        .content("{\"email\":\"not-email\",\"displayName\":\"준호\",\"password\":\"password123\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
@@ -59,7 +61,7 @@ class AuthControllerTest {
     void 비밀번호가_짧으면_400() throws Exception {
         mvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"junho@example.com\",\"password\":\"short\"}"))
+                        .content("{\"email\":\"junho@example.com\",\"displayName\":\"준호\",\"password\":\"short\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
@@ -68,9 +70,11 @@ class AuthControllerTest {
     void 이미_가입된_이메일이면_409() throws Exception {
         given(signupUseCase.signup(any())).willThrow(new ConflictException("이미 가입된 이메일"));
 
-        mvc.perform(post("/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"junho@example.com\",\"password\":\"password123\"}"))
+        mvc.perform(
+                        post("/auth/signup")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{\"email\":\"junho@example.com\",\"displayName\":\"준호\",\"password\":\"password123\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CONFLICT"));
     }

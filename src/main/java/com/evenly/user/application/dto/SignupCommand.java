@@ -1,3 +1,3 @@
 package com.evenly.user.application.dto;
 
-public record SignupCommand(String email, String rawPassword) {}
+public record SignupCommand(String email, String displayName, String rawPassword) {}

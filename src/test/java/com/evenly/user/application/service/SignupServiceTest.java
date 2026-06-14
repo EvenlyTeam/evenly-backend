@@ -46,7 +46,7 @@ class SignupServiceTest {
         when(saveUserPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(tokenProvider.issueToken(any())).thenReturn("jwt-token");
 
-        AuthResult result = service.signup(new SignupCommand("Junho@Example.com", "password123"));
+        AuthResult result = service.signup(new SignupCommand("Junho@Example.com", "준호", "password123"));
 
         assertThat(result.accessToken()).isEqualTo("jwt-token");
         assertThat(result.email()).isEqualTo("junho@example.com");
@@ -57,7 +57,7 @@ class SignupServiceTest {
     void 이미_가입된_이메일이면_충돌() {
         when(loadUserPort.existsByEmail("junho@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> service.signup(new SignupCommand("junho@example.com", "password123")))
+        assertThatThrownBy(() -> service.signup(new SignupCommand("junho@example.com", "준호", "password123")))
                 .isInstanceOf(ConflictException.class);
         verify(saveUserPort, never()).save(any());
         verify(tokenProvider, never()).issueToken(any(UUID.class));

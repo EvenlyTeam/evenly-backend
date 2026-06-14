@@ -17,14 +17,18 @@ class UserJpaEntity extends BaseJpaEntity {
     @Column(nullable = false, unique = true, length = 256)
     private String email;
 
+    @Column(name = "display_name", nullable = false, length = 50)
+    private String displayName;
+
     @Column(name = "password_hash", nullable = false, length = 256)
     private String passwordHash;
 
     protected UserJpaEntity() {}
 
-    UserJpaEntity(UUID id, String email, String passwordHash) {
+    UserJpaEntity(UUID id, String email, String displayName, String passwordHash) {
         this.id = id;
         this.email = email;
+        this.displayName = displayName;
         this.passwordHash = passwordHash;
     }
 
@@ -34,6 +38,10 @@ class UserJpaEntity extends BaseJpaEntity {
 
     String getEmail() {
         return email;
+    }
+
+    String getDisplayName() {
+        return displayName;
     }
 
     String getPasswordHash() {

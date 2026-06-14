@@ -27,6 +27,11 @@ public class Participant {
         return new Participant(UUID.randomUUID(), groupId, null, name);
     }
 
+    /** 로그인 사용자와 연결된 참여자 추가 ("내 잔액" 계산용). */
+    public static Participant createForUser(UUID groupId, UUID userId, String name) {
+        return new Participant(UUID.randomUUID(), groupId, userId, name);
+    }
+
     public boolean belongsTo(UUID groupId) {
         return this.groupId.equals(groupId);
     }

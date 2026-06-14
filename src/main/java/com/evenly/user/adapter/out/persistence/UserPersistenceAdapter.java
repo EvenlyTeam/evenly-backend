@@ -4,6 +4,7 @@ import com.evenly.user.application.port.out.LoadUserPort;
 import com.evenly.user.application.port.out.SaveUserPort;
 import com.evenly.user.domain.User;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,6 +19,11 @@ class UserPersistenceAdapter implements SaveUserPort, LoadUserPort {
     @Override
     public User save(User user) {
         return UserMapper.toDomain(jpaRepository.save(UserMapper.toEntity(user)));
+    }
+
+    @Override
+    public Optional<User> findById(UUID id) {
+        return jpaRepository.findById(id).map(UserMapper::toDomain);
     }
 
     @Override

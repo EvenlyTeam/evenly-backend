@@ -39,7 +39,8 @@ class SignupService implements SignupUseCase {
         if (loadUserPort.existsByEmail(email)) {
             throw new ConflictException("이미 가입된 이메일입니다: " + email);
         }
-        User saved = saveUserPort.save(User.register(email, passwordHasher.hash(command.rawPassword())));
+        User saved = saveUserPort.save(
+                User.register(email, command.displayName(), passwordHasher.hash(command.rawPassword())));
         String token = tokenProvider.issueToken(saved.getId());
         return AuthResult.of(token, saved.getId(), saved.getEmail().value());
     }

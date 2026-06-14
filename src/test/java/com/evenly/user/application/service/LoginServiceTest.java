@@ -37,7 +37,7 @@ class LoginServiceTest {
 
     @Test
     void 자격증명이_맞으면_토큰을_발급한다() {
-        User user = new User(UUID.randomUUID(), "junho@example.com", "hashed", null);
+        User user = new User(UUID.randomUUID(), "junho@example.com", "준호", "hashed", null);
         when(loadUserPort.findByEmail("junho@example.com")).thenReturn(Optional.of(user));
         when(passwordHasher.matches("password123", "hashed")).thenReturn(true);
         when(tokenProvider.issueToken(user.getId())).thenReturn("jwt-token");
@@ -57,7 +57,7 @@ class LoginServiceTest {
 
     @Test
     void 비밀번호가_틀리면_Unauthorized() {
-        User user = new User(UUID.randomUUID(), "junho@example.com", "hashed", null);
+        User user = new User(UUID.randomUUID(), "junho@example.com", "준호", "hashed", null);
         when(loadUserPort.findByEmail("junho@example.com")).thenReturn(Optional.of(user));
         when(passwordHasher.matches(any(), any())).thenReturn(false);
 

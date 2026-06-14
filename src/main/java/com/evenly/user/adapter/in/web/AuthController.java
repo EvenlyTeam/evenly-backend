@@ -38,7 +38,7 @@ class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/signup")
     public AuthResult signup(@Valid @RequestBody SignupRequest request) {
-        return signupUseCase.signup(new SignupCommand(request.email(), request.password()));
+        return signupUseCase.signup(new SignupCommand(request.email(), request.displayName(), request.password()));
     }
 
     @Operation(summary = "로그인", description = "자격 증명 검증 후 access 토큰을 발급한다.")
