@@ -30,6 +30,18 @@ public class Group {
         return new Group(UUID.randomUUID(), name, ownerId, null, null);
     }
 
+    /** 공유 토큰을 부여한 새 인스턴스. (불변 도메인이라 새 객체로 반환) */
+    public Group withShareToken(String shareToken) {
+        if (shareToken == null || shareToken.isBlank()) {
+            throw new IllegalArgumentException("share token must not be blank");
+        }
+        return new Group(id, name.value(), ownerId, shareToken, createdAt);
+    }
+
+    public boolean hasShareToken() {
+        return shareToken != null;
+    }
+
     public UUID getId() {
         return id;
     }

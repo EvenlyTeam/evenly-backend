@@ -10,4 +10,6 @@ public interface LoadGroupPort {
     Optional<Group> findById(UUID id);
 
     List<Group> findByOwnerId(UUID ownerId);
+
+    Optional<Group> findByShareToken(String shareToken);
 }

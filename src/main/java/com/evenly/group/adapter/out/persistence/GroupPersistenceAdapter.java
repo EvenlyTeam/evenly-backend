@@ -30,6 +30,11 @@ class GroupPersistenceAdapter implements LoadGroupPort, SaveGroupPort {
     }
 
     @Override
+    public Optional<Group> findByShareToken(String shareToken) {
+        return jpaRepository.findByShareToken(shareToken).map(GroupMapper::toDomain);
+    }
+
+    @Override
     public Group save(Group group) {
         return GroupMapper.toDomain(jpaRepository.save(GroupMapper.toEntity(group)));
     }

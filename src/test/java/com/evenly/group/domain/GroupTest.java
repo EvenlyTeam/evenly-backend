@@ -25,4 +25,23 @@ class GroupTest {
     void 소유자가_null이면_거부한다() {
         assertThatThrownBy(() -> Group.create("강릉", null)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void withShareToken_은_토큰을_부여한_새_인스턴스를_반환한다() {
+        Group group = Group.create("강릉", UUID.randomUUID());
+
+        Group shared = group.withShareToken("tok123");
+
+        assertThat(group.hasShareToken()).isFalse();
+        assertThat(shared.hasShareToken()).isTrue();
+        assertThat(shared.getShareToken()).isEqualTo("tok123");
+        assertThat(shared.getId()).isEqualTo(group.getId());
+    }
+
+    @Test
+    void withShareToken_은_빈_토큰을_거부한다() {
+        Group group = Group.create("강릉", UUID.randomUUID());
+
+        assertThatThrownBy(() -> group.withShareToken(" ")).isInstanceOf(IllegalArgumentException.class);
+    }
 }
