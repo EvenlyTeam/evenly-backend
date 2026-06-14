@@ -12,9 +12,11 @@ import com.evenly.common.domain.NotFoundException;
 import com.evenly.group.application.GroupAccessGuard;
 import com.evenly.group.application.dto.GroupDetail;
 import com.evenly.group.application.port.in.CreateGroupUseCase;
+import com.evenly.group.application.port.in.DeleteGroupUseCase;
 import com.evenly.group.application.port.in.GetGroupUseCase;
 import com.evenly.group.application.port.in.ListGroupsUseCase;
 import com.evenly.group.application.port.in.SettleGroupUseCase;
+import com.evenly.group.application.port.in.UpdateGroupUseCase;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -44,6 +46,12 @@ class GroupControllerTest {
 
     @MockitoBean
     SettleGroupUseCase settleGroupUseCase;
+
+    @MockitoBean
+    UpdateGroupUseCase updateGroupUseCase;
+
+    @MockitoBean
+    DeleteGroupUseCase deleteGroupUseCase;
 
     @MockitoBean
     GroupAccessGuard groupAccessGuard;
@@ -106,6 +114,26 @@ class GroupControllerTest {
         given(listGroupsUseCase.listGroups(any())).willReturn(List.of());
 
         mvc.perform(get("/groups")).andExpect(status().isOk());
+    }
+
+    @Test
+    void 모임_수정은_200() throws Exception {
+        UUID id = UUID.randomUUID();
+        given(updateGroupUseCase.rename(any(), any()))
+                .willReturn(new GroupDetail(id, "새이름", UUID.randomUUID(), null, OffsetDateTime.now(), List.of()));
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/groups/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"새이름\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("새이름"));
+    }
+
+    @Test
+    void 모임_삭제는_204() throws Exception {
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete(
+                        "/groups/" + UUID.randomUUID()))
+                .andExpect(status().isNoContent());
     }
 
     @Test

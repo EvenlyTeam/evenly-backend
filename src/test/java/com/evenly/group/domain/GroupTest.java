@@ -46,6 +46,17 @@ class GroupTest {
     }
 
     @Test
+    void rename_은_이름만_바꾸고_나머지는_유지한다() {
+        Group group = Group.create("옛이름", UUID.randomUUID());
+
+        Group renamed = group.rename("새이름");
+
+        assertThat(renamed.getName().value()).isEqualTo("새이름");
+        assertThat(renamed.getId()).isEqualTo(group.getId());
+        assertThat(renamed.getOwnerId()).isEqualTo(group.getOwnerId());
+    }
+
+    @Test
     void markSettled_와_reopen_은_정산완료_상태를_토글한다() {
         Group group = Group.create("강릉", UUID.randomUUID());
         assertThat(group.isSettled()).isFalse();

@@ -22,6 +22,11 @@ class UserPersistenceAdapter implements SaveUserPort, LoadUserPort {
     }
 
     @Override
+    public void deleteById(UUID id) {
+        jpaRepository.deleteById(id);
+    }
+
+    @Override
     public Optional<User> findById(UUID id) {
         return jpaRepository.findById(id).map(UserMapper::toDomain);
     }

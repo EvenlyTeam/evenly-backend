@@ -39,6 +39,11 @@ public class User {
         return new User(UUID.randomUUID(), email, displayName, passwordHash, null);
     }
 
+    /** 표시 이름(닉네임)을 바꾼 새 인스턴스. */
+    public User withDisplayName(String newDisplayName) {
+        return new User(id, email.value(), newDisplayName, passwordHash, createdAt);
+    }
+
     public UUID getId() {
         return id;
     }

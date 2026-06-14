@@ -38,4 +38,9 @@ class GroupPersistenceAdapter implements LoadGroupPort, SaveGroupPort {
     public Group save(Group group) {
         return GroupMapper.toDomain(jpaRepository.save(GroupMapper.toEntity(group)));
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        jpaRepository.deleteById(id);
+    }
 }

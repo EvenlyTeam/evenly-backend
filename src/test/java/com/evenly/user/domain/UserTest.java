@@ -26,4 +26,15 @@ class UserTest {
     void 비밀번호_해시가_비면_거부한다() {
         assertThatThrownBy(() -> User.register("a@b.com", "준호", " ")).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void withDisplayName_은_닉네임만_바꾼다() {
+        User user = User.register("junho@example.com", "준호", "hash");
+
+        User renamed = user.withDisplayName("준호2");
+
+        assertThat(renamed.getDisplayName()).isEqualTo("준호2");
+        assertThat(renamed.getId()).isEqualTo(user.getId());
+        assertThat(renamed.getEmail().value()).isEqualTo("junho@example.com");
+    }
 }

@@ -37,6 +37,11 @@ public class Group {
         return new Group(UUID.randomUUID(), name, ownerId, null, null, null);
     }
 
+    /** 이름을 바꾼 새 인스턴스. */
+    public Group rename(String newName) {
+        return new Group(id, newName, ownerId, shareToken, createdAt, settledAt);
+    }
+
     /** 공유 토큰을 부여한 새 인스턴스. (불변 도메인이라 새 객체로 반환) */
     public Group withShareToken(String shareToken) {
         if (shareToken == null || shareToken.isBlank()) {
