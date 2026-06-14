@@ -17,11 +17,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,8 +47,7 @@ class GroupController {
     @ApiResponse(responseCode = "201", description = "생성 성공")
     @PostMapping
     public ResponseEntity<GroupDetail> createGroup(
-            // TODO(auth): 인증 어댑터 구현 후 인증 principal 에서 ownerId 주입으로 교체
-            @Parameter(description = "소유자 사용자 ID (임시: 인증 전까지 헤더로 전달)") @RequestHeader("X-User-Id") UUID ownerId,
+            @Parameter(hidden = true) @AuthenticationPrincipal UUID ownerId,
             @Valid @RequestBody CreateGroupRequest request) {
         GroupDetail created =
                 createGroupUseCase.createGroup(new CreateGroupCommand(request.name(), ownerId, request.participants()));
@@ -58,8 +57,7 @@ class GroupController {
     @Operation(summary = "내 모임 목록 조회")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
-    public List<GroupSummary> listGroups(
-            @Parameter(description = "소유자 사용자 ID (임시: 인증 전까지 헤더로 전달)") @RequestHeader("X-User-Id") UUID ownerId) {
+    public List<GroupSummary> listGroups(@Parameter(hidden = true) @AuthenticationPrincipal UUID ownerId) {
         return listGroupsUseCase.listGroups(ownerId);
     }
 
