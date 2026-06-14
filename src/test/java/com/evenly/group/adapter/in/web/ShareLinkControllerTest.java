@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.evenly.common.domain.NotFoundException;
+import com.evenly.group.application.GroupAccessGuard;
 import com.evenly.group.application.dto.ShareLinkInfo;
 import com.evenly.group.application.port.in.GenerateShareLinkUseCase;
 import java.util.UUID;
@@ -26,6 +27,9 @@ class ShareLinkControllerTest {
 
     @MockitoBean
     GenerateShareLinkUseCase generateShareLinkUseCase;
+
+    @MockitoBean
+    GroupAccessGuard groupAccessGuard;
 
     @Test
     void 공유링크를_발급하면_200() throws Exception {

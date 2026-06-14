@@ -1,5 +1,6 @@
 package com.evenly.group.adapter.in.web;
 
+import com.evenly.group.application.GroupAccessGuard;
 import com.evenly.group.application.dto.CreateGroupCommand;
 import com.evenly.group.application.dto.GroupDetail;
 import com.evenly.group.application.dto.GroupSummary;
@@ -33,14 +34,17 @@ class GroupController {
     private final CreateGroupUseCase createGroupUseCase;
     private final GetGroupUseCase getGroupUseCase;
     private final ListGroupsUseCase listGroupsUseCase;
+    private final GroupAccessGuard groupAccessGuard;
 
     GroupController(
             CreateGroupUseCase createGroupUseCase,
             GetGroupUseCase getGroupUseCase,
-            ListGroupsUseCase listGroupsUseCase) {
+            ListGroupsUseCase listGroupsUseCase,
+            GroupAccessGuard groupAccessGuard) {
         this.createGroupUseCase = createGroupUseCase;
         this.getGroupUseCase = getGroupUseCase;
         this.listGroupsUseCase = listGroupsUseCase;
+        this.groupAccessGuard = groupAccessGuard;
     }
 
     @Operation(summary = "모임 생성", description = "이름과 참여자(선택)로 모임을 생성한다.")
@@ -67,7 +71,10 @@ class GroupController {
         @ApiResponse(responseCode = "404", description = "모임을 찾을 수 없음", content = @Content)
     })
     @GetMapping("/{id}")
-    public GroupDetail getGroup(@Parameter(description = "모임 ID") @PathVariable UUID id) {
+    public GroupDetail getGroup(
+            @Parameter(hidden = true) @AuthenticationPrincipal UUID requesterId,
+            @Parameter(description = "모임 ID") @PathVariable UUID id) {
+        groupAccessGuard.requireOwner(id, requesterId);
         return getGroupUseCase.getGroup(id);
     }
 }

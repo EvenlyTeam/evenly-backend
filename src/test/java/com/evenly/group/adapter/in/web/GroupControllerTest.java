@@ -7,7 +7,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.evenly.common.domain.ForbiddenException;
 import com.evenly.common.domain.NotFoundException;
+import com.evenly.group.application.GroupAccessGuard;
 import com.evenly.group.application.dto.GroupDetail;
 import com.evenly.group.application.port.in.CreateGroupUseCase;
 import com.evenly.group.application.port.in.GetGroupUseCase;
@@ -38,6 +40,18 @@ class GroupControllerTest {
 
     @MockitoBean
     ListGroupsUseCase listGroupsUseCase;
+
+    @MockitoBean
+    GroupAccessGuard groupAccessGuard;
+
+    @Test
+    void 소유자가_아니면_403() throws Exception {
+        given(groupAccessGuard.requireOwner(any(), any())).willThrow(new ForbiddenException("권한 없음"));
+
+        mvc.perform(get("/groups/" + UUID.randomUUID()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
 
     @Test
     void 모임을_생성하면_201() throws Exception {

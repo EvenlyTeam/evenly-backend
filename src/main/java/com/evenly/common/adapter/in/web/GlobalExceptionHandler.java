@@ -1,6 +1,7 @@
 package com.evenly.common.adapter.in.web;
 
 import com.evenly.common.domain.ConflictException;
+import com.evenly.common.domain.ForbiddenException;
 import com.evenly.common.domain.NotFoundException;
 import com.evenly.common.domain.UnauthorizedException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -34,6 +35,13 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleUnauthorized(UnauthorizedException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setProperty("code", "UNAUTHORIZED");
+        return problem;
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ProblemDetail handleForbidden(ForbiddenException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problem.setProperty("code", "FORBIDDEN");
         return problem;
     }
 

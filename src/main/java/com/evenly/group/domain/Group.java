@@ -42,6 +42,10 @@ public class Group {
         return shareToken != null;
     }
 
+    public boolean isOwnedBy(UUID userId) {
+        return ownerId.equals(userId);
+    }
+
     public UUID getId() {
         return id;
     }

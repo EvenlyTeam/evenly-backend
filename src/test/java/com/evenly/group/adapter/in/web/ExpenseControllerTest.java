@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.evenly.group.application.GroupAccessGuard;
 import com.evenly.group.application.dto.ExpenseInfo;
 import com.evenly.group.application.port.in.AddExpenseUseCase;
 import com.evenly.group.application.port.in.DeleteExpenseUseCase;
@@ -36,6 +37,9 @@ class ExpenseControllerTest {
 
     @MockitoBean
     DeleteExpenseUseCase deleteExpenseUseCase;
+
+    @MockitoBean
+    GroupAccessGuard groupAccessGuard;
 
     private final UUID groupId = UUID.randomUUID();
 

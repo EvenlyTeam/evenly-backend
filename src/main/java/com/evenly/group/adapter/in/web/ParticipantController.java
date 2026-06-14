@@ -1,5 +1,6 @@
 package com.evenly.group.adapter.in.web;
 
+import com.evenly.group.application.GroupAccessGuard;
 import com.evenly.group.application.dto.AddParticipantCommand;
 import com.evenly.group.application.dto.ParticipantInfo;
 import com.evenly.group.application.port.in.AddParticipantUseCase;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,11 +29,15 @@ class ParticipantController {
 
     private final AddParticipantUseCase addParticipantUseCase;
     private final RemoveParticipantUseCase removeParticipantUseCase;
+    private final GroupAccessGuard groupAccessGuard;
 
     ParticipantController(
-            AddParticipantUseCase addParticipantUseCase, RemoveParticipantUseCase removeParticipantUseCase) {
+            AddParticipantUseCase addParticipantUseCase,
+            RemoveParticipantUseCase removeParticipantUseCase,
+            GroupAccessGuard groupAccessGuard) {
         this.addParticipantUseCase = addParticipantUseCase;
         this.removeParticipantUseCase = removeParticipantUseCase;
+        this.groupAccessGuard = groupAccessGuard;
     }
 
     @Operation(summary = "참여자 추가")
@@ -42,8 +48,10 @@ class ParticipantController {
     })
     @PostMapping
     public ResponseEntity<ParticipantInfo> addParticipant(
+            @Parameter(hidden = true) @AuthenticationPrincipal UUID requesterId,
             @Parameter(description = "모임 ID") @PathVariable UUID groupId,
             @Valid @RequestBody AddParticipantRequest request) {
+        groupAccessGuard.requireOwner(groupId, requesterId);
         ParticipantInfo created =
                 addParticipantUseCase.addParticipant(new AddParticipantCommand(groupId, request.name()));
         return ResponseEntity.created(URI.create("/groups/" + groupId + "/participants/" + created.id()))
@@ -58,8 +66,10 @@ class ParticipantController {
     })
     @DeleteMapping("/{participantId}")
     public ResponseEntity<Void> removeParticipant(
+            @Parameter(hidden = true) @AuthenticationPrincipal UUID requesterId,
             @Parameter(description = "모임 ID") @PathVariable UUID groupId,
             @Parameter(description = "참여자 ID") @PathVariable UUID participantId) {
+        groupAccessGuard.requireOwner(groupId, requesterId);
         removeParticipantUseCase.removeParticipant(groupId, participantId);
         return ResponseEntity.noContent().build();
     }
