@@ -55,6 +55,11 @@ public class Expense {
         return this.groupId.equals(groupId);
     }
 
+    /** 결제자/내용/금액/분담대상을 교체한 새 인스턴스(같은 id·모임). */
+    public Expense update(UUID payerId, String description, long amount, List<UUID> shareParticipantIds) {
+        return new Expense(id, groupId, payerId, description, amount, shareParticipantIds);
+    }
+
     public UUID getId() {
         return id;
     }

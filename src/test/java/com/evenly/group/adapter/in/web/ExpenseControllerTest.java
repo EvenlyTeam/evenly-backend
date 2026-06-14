@@ -12,6 +12,7 @@ import com.evenly.group.application.dto.ExpenseInfo;
 import com.evenly.group.application.port.in.AddExpenseUseCase;
 import com.evenly.group.application.port.in.DeleteExpenseUseCase;
 import com.evenly.group.application.port.in.ListExpensesUseCase;
+import com.evenly.group.application.port.in.UpdateExpenseUseCase;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class ExpenseControllerTest {
 
     @MockitoBean
     ListExpensesUseCase listExpensesUseCase;
+
+    @MockitoBean
+    UpdateExpenseUseCase updateExpenseUseCase;
 
     @MockitoBean
     DeleteExpenseUseCase deleteExpenseUseCase;
@@ -87,6 +91,22 @@ class ExpenseControllerTest {
         given(listExpensesUseCase.listExpenses(any())).willReturn(List.of());
 
         mvc.perform(get("/groups/" + groupId + "/expenses")).andExpect(status().isOk());
+    }
+
+    @Test
+    void 지출을_수정하면_200() throws Exception {
+        UUID payer = UUID.randomUUID();
+        UUID expenseId = UUID.randomUUID();
+        given(updateExpenseUseCase.updateExpense(any()))
+                .willReturn(new ExpenseInfo(expenseId, groupId, payer, "택시", 30000, List.of(payer)));
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch(
+                                "/groups/" + groupId + "/expenses/" + expenseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"payerId\":\"" + payer + "\",\"description\":\"택시\",\"amount\":30000,"
+                                + "\"shareParticipantIds\":[\"" + payer + "\"]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.amount").value(30000));
     }
 
     @Test

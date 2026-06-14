@@ -66,4 +66,18 @@ class ExpenseTest {
         assertThat(expense.belongsTo(groupId)).isTrue();
         assertThat(expense.belongsTo(UUID.randomUUID())).isFalse();
     }
+
+    @Test
+    void update_는_id와_모임은_유지하고_나머지를_교체한다() {
+        Expense expense = Expense.create(groupId, payer, "저녁", 100, List.of(payer));
+        UUID newPayer = UUID.randomUUID();
+
+        Expense updated = expense.update(newPayer, "택시", 30000, List.of(payer, newPayer));
+
+        assertThat(updated.getId()).isEqualTo(expense.getId());
+        assertThat(updated.getGroupId()).isEqualTo(groupId);
+        assertThat(updated.getPayerId()).isEqualTo(newPayer);
+        assertThat(updated.getAmount()).isEqualTo(30000);
+        assertThat(updated.getDescription()).isEqualTo("택시");
+    }
 }
