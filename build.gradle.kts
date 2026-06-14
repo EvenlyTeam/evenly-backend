@@ -51,16 +51,34 @@ tasks.withType<Test> {
     finalizedBy(tasks.jacocoTestReport)
 }
 
+// 단위 테스트로 다룰 로직이 없는 보일러플레이트는 커버리지 측정에서 제외
+// (앱 부트스트랩/설정/JPA 엔티티/보안 인프라 — 동작 검증은 통합·수동 테스트 영역).
+val coverageExclusions = listOf(
+    "**/EvenlyApplication.*",
+    "**/*Config.*",
+    "**/*JpaEntity.*",
+    "**/JwtAuthenticationFilter.*",
+    "**/RestAuthenticationEntryPoint.*",
+)
+
+fun JacocoReportBase.applyCoverageExclusions() {
+    classDirectories.setFrom(files(classDirectories.files.map {
+        fileTree(it) { exclude(coverageExclusions) }
+    }))
+}
+
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
         xml.required = true
         html.required = true
     }
+    applyCoverageExclusions()
 }
 
 tasks.jacocoTestCoverageVerification {
     dependsOn(tasks.jacocoTestReport)
+    applyCoverageExclusions()
     violationRules {
         rule {
             limit {
